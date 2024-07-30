@@ -4,19 +4,20 @@ import (
 	"context"
 	"flag"
 	"fmt"
+	"github.com/indigo-sadland/ffuf/v2/pkg/help"
 	"io"
 	"log"
 	"os"
 	"strings"
 	"time"
 
-	"github.com/ffuf/ffuf/v2/pkg/ffuf"
-	"github.com/ffuf/ffuf/v2/pkg/filter"
-	"github.com/ffuf/ffuf/v2/pkg/input"
-	"github.com/ffuf/ffuf/v2/pkg/interactive"
-	"github.com/ffuf/ffuf/v2/pkg/output"
-	"github.com/ffuf/ffuf/v2/pkg/runner"
-	"github.com/ffuf/ffuf/v2/pkg/scraper"
+	"github.com/indigo-sadland/ffuf/v2/pkg/ffuf"
+	"github.com/indigo-sadland/ffuf/v2/pkg/filter"
+	"github.com/indigo-sadland/ffuf/v2/pkg/input"
+	"github.com/indigo-sadland/ffuf/v2/pkg/interactive"
+	"github.com/indigo-sadland/ffuf/v2/pkg/output"
+	"github.com/indigo-sadland/ffuf/v2/pkg/runner"
+	"github.com/indigo-sadland/ffuf/v2/pkg/scraper"
 )
 
 type multiStringFlag []string
@@ -65,6 +66,7 @@ func ParseFlags(opts *ffuf.ConfigOptions) *ffuf.ConfigOptions {
 	flag.BoolVar(&ignored, "i", true, "Dummy flag for copy as curl functionality (ignored)")
 	flag.BoolVar(&ignored, "k", false, "Dummy flag for backwards compatibility")
 	flag.BoolVar(&opts.Output.OutputSkipEmptyFile, "or", opts.Output.OutputSkipEmptyFile, "Don't create the output file if we don't have results")
+	flag.BoolVar(&opts.General.ShowWordlists, "show-wordlists", true, "List wordlists, specified in ffuf config file")
 	flag.BoolVar(&opts.General.AutoCalibration, "ac", opts.General.AutoCalibration, "Automatically calibrate filtering options")
 	flag.BoolVar(&opts.General.AutoCalibrationPerHost, "ach", opts.General.AutoCalibration, "Per host autocalibration")
 	flag.BoolVar(&opts.General.Colors, "c", opts.General.Colors, "Colorize output.")
@@ -139,7 +141,7 @@ func ParseFlags(opts *ffuf.ConfigOptions) *ffuf.ConfigOptions {
 	flag.Var(&inputcommands, "input-cmd", "Command producing the input. --input-num is required when using this input method. Overrides -w.")
 	flag.Var(&wordlists, "w", "Wordlist file path and (optional) keyword separated by colon. eg. '/path/to/wordlist:KEYWORD'")
 	flag.Var(&encoders, "enc", "Encoders for keywords, eg. 'FUZZ:urlencode b64encode'")
-	flag.Usage = Usage
+	flag.Usage = help.Usage
 	flag.Parse()
 
 	opts.General.AutoCalibrationStrings = autocalibrationstrings
@@ -167,6 +169,25 @@ func main() {
 	opts, optserr = ffuf.ReadDefaultConfig()
 
 	opts = ParseFlags(opts)
+
+	// Handle show-wordlists and exit
+	if opts.General.ShowWordlists {
+		var confOpts *ffuf.ConfigOptions
+		var err error
+		if opts.General.ConfigFile != "" {
+			confOpts, err = ffuf.ReadConfig(opts.General.ConfigFile)
+		} else {
+			confOpts, err = ffuf.ReadDefaultConfig()
+		}
+		if err != nil {
+			fmt.Printf("[ERR] Hash cannot be mapped back because %s\n", err)
+			os.Exit(1)
+		}
+		for _, w := range confOpts.Input.Wordlists {
+			fmt.Printf("%s\n", w)
+		}
+		os.Exit(1)
+	}
 
 	// Handle searchhash functionality and exit
 	if opts.General.Searchhash != "" {
@@ -221,7 +242,7 @@ func main() {
 		opts, err = ffuf.ReadConfig(opts.General.ConfigFile)
 		if err != nil {
 			fmt.Fprintf(os.Stderr, "Encoutered error(s): %s\n", err)
-			Usage()
+			help.Usage()
 			fmt.Fprintf(os.Stderr, "Encoutered error(s): %s\n", err)
 			os.Exit(1)
 		}
@@ -235,7 +256,7 @@ func main() {
 	conf, err := ffuf.ConfigFromOptions(opts, ctx, cancel)
 	if err != nil {
 		fmt.Fprintf(os.Stderr, "Encountered error(s): %s\n", err)
-		Usage()
+		help.Usage()
 		fmt.Fprintf(os.Stderr, "Encountered error(s): %s\n", err)
 		os.Exit(1)
 	}
@@ -243,13 +264,13 @@ func main() {
 	job, err := prepareJob(conf)
 	if err != nil {
 		fmt.Fprintf(os.Stderr, "Encountered error(s): %s\n", err)
-		Usage()
+		help.Usage()
 		fmt.Fprintf(os.Stderr, "Encountered error(s): %s\n", err)
 		os.Exit(1)
 	}
 	if err := SetupFilters(opts, conf); err != nil {
 		fmt.Fprintf(os.Stderr, "Encountered error(s): %s\n", err)
-		Usage()
+		help.Usage()
 		fmt.Fprintf(os.Stderr, "Encountered error(s): %s\n", err)
 		os.Exit(1)
 	}

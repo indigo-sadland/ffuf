@@ -7,7 +7,7 @@ import (
 	"strings"
 	"time"
 
-	"github.com/ffuf/ffuf/v2/pkg/ffuf"
+	"github.com/indigo-sadland/ffuf/v2/pkg/ffuf"
 )
 
 type interactive struct {

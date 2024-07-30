@@ -5,7 +5,7 @@ import (
 	"os"
 	"time"
 
-	"github.com/ffuf/ffuf/v2/pkg/ffuf"
+	"github.com/indigo-sadland/ffuf/v2/pkg/ffuf"
 )
 
 type ejsonFileOutput struct {

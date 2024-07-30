@@ -70,6 +70,7 @@ type GeneralOptions struct {
 	StopOnErrors              bool     `json:"stop_on_errors"`
 	Threads                   int      `json:"threads"`
 	Verbose                   bool     `json:"verbose"`
+	ShowWordlists             bool     `json:"show_wordlists"`
 }
 
 type InputOptions struct {
