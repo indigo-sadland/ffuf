@@ -6,6 +6,7 @@ import (
 	"time"
 
 	"github.com/indigo-sadland/ffuf/v2/pkg/ffuf"
+	"github.com/indigo-sadland/ffuf/v2/pkg/scraper"
 )
 
 type ejsonFileOutput struct {
@@ -29,6 +30,9 @@ type JsonResult struct {
 	ResultFile       string              `json:"resultfile"`
 	Url              string              `json:"url"`
 	Host             string              `json:"host"`
+	StartPoint     	 string				 `json:"start_point"`
+	Port			 string				 `json:"port"`
+
 }
 
 type jsonFileOutput struct {
@@ -65,6 +69,8 @@ func writeJSON(filename string, config *ffuf.Config, res []ffuf.Result) error {
 		for k, v := range r.Input {
 			strinput[k] = string(v)
 		}
+		parent := scraper.GetParent(r.Url)
+		port := scraper.GetPort(r.Url)
 		jsonRes = append(jsonRes, JsonResult{
 			Input:            strinput,
 			Position:         r.Position,
@@ -79,6 +85,8 @@ func writeJSON(filename string, config *ffuf.Config, res []ffuf.Result) error {
 			ResultFile:       r.ResultFile,
 			Url:              r.Url,
 			Host:             r.Host,
+			StartPoint:       parent,
+			Port:             port,
 		})
 	}
 	outJSON := jsonFileOutput{

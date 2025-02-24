@@ -2,8 +2,11 @@ package scraper
 
 import (
 	"fmt"
-	"github.com/indigo-sadland/ffuf/v2/pkg/ffuf"
+	"net/url"
+	"regexp"
 	"strings"
+
+	"github.com/indigo-sadland/ffuf/v2/pkg/ffuf"
 )
 
 func headerString(headers map[string][]string) string {
@@ -26,4 +29,44 @@ func parseActiveGroups(activestr string) []string {
 		retslice = append(retslice, strings.ToLower(strings.TrimSpace(v)))
 	}
 	return retslice
+}
+
+func GetParent(rawUrl string) string {
+	var parent string
+
+	u, err := url.Parse(rawUrl)
+	if err != nil {
+		panic(err)
+	}
+	// Remove the leading and trailing "/" then split on "/"
+	trimmedPath := strings.Trim(u.Path, "/")
+	segments := strings.Split(trimmedPath, "/")
+
+	// Check if there is at least one segment
+	if len(segments) > 0 {
+		firstSegment := segments[0]
+		parent = firstSegment
+	} else {
+		parent = "/"
+	}
+
+	return parent
+}
+
+func GetPort(rawUrl string) string {
+	u, err := url.Parse(rawUrl)
+	if err != nil {
+		panic(err)
+	}
+
+	port := u.Port()
+	if port == "" {
+		protocol := regexp.MustCompile(`\bhttps?://(.*?)/?`).FindStringSubmatch(rawUrl)[0]
+		if protocol == "http" {
+			port = "80"
+		} else {
+			port = "443"
+		}
+	}
+	return port
 }

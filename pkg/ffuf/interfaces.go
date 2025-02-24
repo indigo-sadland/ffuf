@@ -106,4 +106,6 @@ type Result struct {
 	ResultFile       string              `json:"resultfile"`
 	Host             string              `json:"host"`
 	HTMLColor        string              `json:"-"`
+	StartPoint     	 string				 `json:"start_point"`
+	Port			 string				 `json:"port"`
 }

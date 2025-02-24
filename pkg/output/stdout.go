@@ -12,6 +12,7 @@ import (
 	"time"
 
 	"github.com/indigo-sadland/ffuf/v2/pkg/ffuf"
+	"github.com/indigo-sadland/ffuf/v2/pkg/scraper"
 )
 
 const (
@@ -231,7 +232,7 @@ func (s *Stdoutput) writeToAll(filename string, config *ffuf.Config, res []ffuf.
 
 	// Go through each type of write, adding
 	// the suffix to each output file.
-
+	
 	s.config.OutputFile = BaseFilename + ".json"
 	err = writeJSON(s.config.OutputFile, s.config, res)
 	if err != nil {
@@ -313,6 +314,7 @@ func (s *Stdoutput) Finalize() error {
 	return nil
 }
 
+
 func (s *Stdoutput) Result(resp ffuf.Response) {
 	// Do we want to write request and response to a file
 	if len(s.config.OutputDirectory) > 0 {
@@ -323,6 +325,8 @@ func (s *Stdoutput) Result(resp ffuf.Response) {
 	for k, v := range resp.Request.Input {
 		inputs[k] = v
 	}
+	parent := scraper.GetParent(resp.Request.Url)
+	port := scraper.GetPort(resp.Request.Url)
 	sResult := ffuf.Result{
 		Input:            inputs,
 		Position:         resp.Request.Position,
@@ -337,6 +341,10 @@ func (s *Stdoutput) Result(resp ffuf.Response) {
 		Duration:         resp.Time,
 		ResultFile:       resp.ResultFile,
 		Host:             resp.Request.Host,
+		StartPoint:		  parent,
+		Port:             port,		
+
+		
 	}
 	s.CurrentResults = append(s.CurrentResults, sResult)
 	// Output the result
