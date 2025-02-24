@@ -43,7 +43,7 @@ func GetParent(rawUrl string) string {
 	segments := strings.Split(trimmedPath, "/")
 
 	// Check if there is at least one segment
-	if len(segments) > 0 {
+	if len(segments) > 1  {
 		firstSegment := segments[0]
 		parent = firstSegment
 	} else {
